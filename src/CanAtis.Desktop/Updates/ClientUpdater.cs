@@ -29,17 +29,19 @@ public class ClientUpdater : IClientUpdater
     public ClientUpdater(IAppConfigurationProvider appConfigurationProvider)
     {
         var versionUrl = appConfigurationProvider.VersionUrl;
+
+        // Append platform as a query parameter instead of path segment
         if (OperatingSystem.IsMacOS())
         {
-            versionUrl += "/macos/";
+            versionUrl += "&platform=macos";
         }
         else if (OperatingSystem.IsLinux())
         {
-            versionUrl += "/linux/";
+            versionUrl += "&platform=linux";
         }
         else if (OperatingSystem.IsWindows())
         {
-            versionUrl += "/windows/";
+            versionUrl += "&platform=windows";
         }
         else
         {
@@ -48,7 +50,7 @@ public class ClientUpdater : IClientUpdater
 
         _updateManager = new UpdateManager(versionUrl, new UpdateOptions
         {
-            AllowVersionDowngrade = true
+            AllowVersionDowngrade = false
         });
     }
 
@@ -65,7 +67,7 @@ public class ClientUpdater : IClientUpdater
 
         if (_updateInfo == null) return false;
         await _updateManager.DownloadUpdatesAsync(_updateInfo, ReportProgress);
-        _updateManager.WaitExitThenApplyUpdates(_updateInfo, silent: true);
+        _updateManager.WaitExitThenApplyUpdates(_updateInfo, silent: false, restart: true);
 
         return true;
     }
